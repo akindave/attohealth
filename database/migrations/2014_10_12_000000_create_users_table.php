@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('middle_name')->nullable();;
             $table->string('mobile_number')->unique();
             $table->string('gender')->nullable();
+            $table->string('designation')->nullable();
             $table->string('address')->nullable();
             $table->string('name_of_org')->nullable();
             $table->string('specialty')->nullable();
@@ -30,9 +31,11 @@ return new class extends Migration
             $table->longText('certificate_of_practice')->nullable();
             $table->longText('academic_certificate')->nullable();
             $table->longText('resume')->nullable();
+            $table->longText('practicing_license')->nullable();
             $table->boolean('isVerified')->default(false);
-            $table->string('country');
+            $table->string('country')->nullable();
             $table->string('state')->nullable();
+            $table->string('city')->nullable();
             $table->string('code');
             $table->string('profile_pics')->nullable();
             $table->string('email')->unique();
