@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('middle_name')->nullable();;
             $table->string('mobile_number')->unique();
+            $table->foreignId('user_category_id')->constrained('user_categories');
             $table->string('gender')->nullable();
             $table->string('designation')->nullable();
             $table->string('address')->nullable();
