@@ -35,11 +35,12 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('auth/register', 'getAllCountry');
 
 
-    // Route::post('confirm/email', 'confirmEmail');
-    // Route::post('verify/email', 'verifyEmail');
+    Route::post('confirm/email', 'confirmEmail');
+    Route::post('verify/email', 'verifyEmail');
+    Route::post('check/email', 'checkEmail');
+    Route::post('auth/reset/password', 'resetPassword');
+
     // Route::post('confirm/mobile', 'confirmMobile');
     // Route::post('verify/mobile', 'verifyMobile');
-    // Route::post('check/email', 'checkEmail');
     // Route::post('check/username', 'checkUsername');
-    // Route::post('auth/reset/password', 'resetPassword');
 });

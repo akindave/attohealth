@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\OtpMessage;
 
 class AuthController extends BaseController
 {
@@ -67,11 +68,26 @@ class AuthController extends BaseController
         $input['isVerified'] = true;
         $input['email_verified_at'] = Carbon::now();
         $user = User::create($input);
+        $generateReferCode = generateReferCode();
+        $referer = RefererCode::create([
+            'user_id' => $user->id,
+            'code' => $generateReferCode
+        ]);
         $success['token'] =  $user->createToken('attohealth')->plainTextToken;
         $success['user'] =  $user;
+        $success['referer'] =  $referer;
 
         return $this->sendResponse($success, 'User register successfully.');
 
+    }
+
+    public function generateReferCode($user){
+        $code = substr($user->first_name, 0, 3)."/".str_random(10); // Generate a random string of length 10
+        while (User::where('referral_code', $code)->exists()) {
+            // Make sure the code is unique
+            $code =  substr($user->first_name, 0, 3)."/".str_random(10);
+        }
+        return $code;
     }
 
     public function employeeDocument(Request $request)
@@ -408,7 +424,20 @@ class AuthController extends BaseController
             'email' => $request->email,
         ]);
         // $otp->save();
-        return $otp;
+        $user = User::find($user_id);
+
+        try {
+            //code...
+            $project = [
+            'greeting' => 'Hi '.$user->last_name.',',
+            'code' => $code
+        ];
+            $user->notify(new OtpMessage($otp));
+            return $this->sendResponse([], 'Otp sent successfully.');
+        } catch (\Throwable $th) {
+            return $th;
+            return $this->sendError('Unable to send otp', []);
+        }
 
         /**
          * Import the Mail class at the top of this page,
