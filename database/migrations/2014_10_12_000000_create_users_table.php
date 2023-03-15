@@ -26,8 +26,7 @@ return new class extends Migration
             $table->string('experience_year')->nullable();
             $table->string('education_level')->nullable();
             $table->string('looking_for')->nullable();
-            $table->string('interview_time')->nullable();
-            $table->string('interview_date')->nullable();
+            $table->string('recommendation')->nullable();
             $table->longText('org_logo')->nullable();
             $table->longText('certificate_of_practice')->nullable();
             $table->longText('academic_certificate')->nullable();

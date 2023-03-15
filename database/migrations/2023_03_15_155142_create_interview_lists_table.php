@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('otp_codes', function (Blueprint $table) {
+        Schema::create('interview_lists', function (Blueprint $table) {
             $table->id();
-            $table->string('code');
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->string('email')->nullable();
-            $table->expirable();
+            $table->unsignedBigInteger('user_id');
+            $table->string('interview_time');
+            $table->string('interview_date');
+            $table->string('message')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('otp_codes');
+        Schema::dropIfExists('interview_lists');
     }
 };

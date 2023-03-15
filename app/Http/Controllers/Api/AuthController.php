@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\OtpCode;
+use App\Models\RefererCode;
 use Twilio\Rest\Client;
 use App\Mail\ConfirmEmail;
 use App\Models\KycList;
 use App\Models\Referee;
+use App\Models\InterviewList;
+use App\Models\Referer;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -40,6 +43,17 @@ class AuthController extends BaseController
             $user = Auth::user();
             $success['token'] =  $user->createToken('attohealth')->plainTextToken;
             $success['user'] =  $user;
+            $refer_code = RefererCode::whereUserId($user->id)->first();
+            $referers = Referer::whereUserId($user->id)->get();
+            if(!$refer_code){
+                return $this->sendError('Error getting Referer Code', []);
+            }
+            if(!$referers ){
+                return $this->sendError('Error getting Referers', []);
+            }
+            $success['refer_code_data'] = $refer_code;
+            $success['referers'] = $referers;
+
             return $this->sendResponse($success, 'User login successfully.');
         } else {
 
@@ -68,24 +82,24 @@ class AuthController extends BaseController
         $input['isVerified'] = true;
         $input['email_verified_at'] = Carbon::now();
         $user = User::create($input);
-        $generateReferCode = generateReferCode();
+        $generateReferCode = $this->generateReferCode($user);
         $referer = RefererCode::create([
             'user_id' => $user->id,
             'code' => $generateReferCode
         ]);
         $success['token'] =  $user->createToken('attohealth')->plainTextToken;
         $success['user'] =  $user;
-        $success['referer'] =  $referer;
+        $success['refer'] =  $referer;
 
         return $this->sendResponse($success, 'User register successfully.');
 
     }
 
     public function generateReferCode($user){
-        $code = substr($user->first_name, 0, 3)."/".str_random(10); // Generate a random string of length 10
-        while (User::where('referral_code', $code)->exists()) {
+        $code = substr($user->first_name, 0, 3)."/".Str::random(10); // Generate a random string of length 10
+        while (RefererCode::where('code', $code)->exists()) {
             // Make sure the code is unique
-            $code =  substr($user->first_name, 0, 3)."/".str_random(10);
+            $code =  substr($user->first_name, 0, 3)."/".Str::random(10);
         }
         return $code;
     }
@@ -195,6 +209,10 @@ class AuthController extends BaseController
             'state' => $request->state,
             'city' => $request->city,
             'address' => $request->address,
+        ]);
+
+        InterviewList::create([
+            'user_id'=> $request->user_id,
             'interview_time' => $request->interview_time,
             'interview_date' => $request->interview_date
         ]);
@@ -311,8 +329,8 @@ class AuthController extends BaseController
 
             'user_id' => 'required',
             'name_of_org' => 'required',
-            'org_logo' => 'required|mimes:jpg,png,jpeg',
-            'practicing_license' => 'required|mimes:jpg,pdf,doc,jpeg',
+            'org_logo' => 'required',
+            'practicing_license' => 'required',
             'specialty' => 'required',
             'country' => 'required',
             'state' => 'required',
@@ -410,19 +428,19 @@ class AuthController extends BaseController
          * Store a receiver email address to a variable.
          */
         $reveiverEmailAddress = $request->email;
+        $user_id = $request->user_id;
 
         // generate otp code for user to use
         // return $reveiverEmailAddress;
 
         $code = random_int(10000, 99999);
 
-        // $otp = new OtpCode();
-        // $otp->code = $code;
-        // $otp->email = $request->email;
+
         $otp = OtpCode::create([
             'code' => $code,
             'email' => $request->email,
         ]);
+        // return;
         // $otp->save();
         $user = User::find($user_id);
 
@@ -463,6 +481,7 @@ class AuthController extends BaseController
          * Return the appropriate message.
          */
     }
+
     public function verifyEmail(Request $request)
     {
         $code = OtpCode::whereEmail($request->email)->first();
@@ -474,16 +493,8 @@ class AuthController extends BaseController
         }
     }
 
-    public function checkUsername(Request $request)
-    {
-        $user = User::whereUsername($request->username)->first();
 
-        if ($user) {
-            return $this->sendError('Username unavailable', []);
-        } else {
-            return $this->sendResponse([], 'Username available');
-        }
-    }
+
     public function checkEmail(Request $request)
     {
         $user = User::whereEmail($request->email)->first();

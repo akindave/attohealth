@@ -18,7 +18,7 @@ class OtpMessage extends Notification
     public function __construct($otp)
     {
         //
-        $this->project= $otp;
+        $this->otp = $otp;
     }
 
 
