@@ -5,12 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ApplicantList extends Model
+class SpecialtyList extends Model
 {
     use HasFactory;
-    protected $fillable = [
-        'applicant_id',
-        'job_id',
-        'status'
-    ];
 }

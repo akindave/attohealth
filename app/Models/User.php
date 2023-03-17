@@ -44,7 +44,8 @@ class User extends Authenticatable
             'interview_date',
             'practicing_license',
             'org_logo',
-            'name_of_org'
+            'name_of_org',
+            'specialty'
 
 
 

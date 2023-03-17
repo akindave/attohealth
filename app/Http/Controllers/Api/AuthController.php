@@ -116,9 +116,9 @@ class AuthController extends BaseController
             'academic_certificate' => 'required',
             'resume' => 'required',
             'looking_for' => 'required',
-            'country' => 'required',
-            'state' => 'required',
-            'city' => 'required',
+            'country' => 'required|integer',
+            'state' => 'required|integer',
+            'city' => 'required|integer',
             'address' => 'required',
             'identity_type' => 'required',
             'front_image' => 'required',
@@ -332,8 +332,8 @@ class AuthController extends BaseController
             'org_logo' => 'required',
             'practicing_license' => 'required',
             'specialty' => 'required',
-            'country' => 'required',
-            'state' => 'required',
+            'country' => 'required|integer',
+            'state' => 'required|integer',
             'address' => 'required',
 
         ]);

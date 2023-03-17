@@ -36,6 +36,8 @@ return new class extends Migration
             $table->string('country')->nullable();
             $table->string('state')->nullable();
             $table->string('city')->nullable();
+            $table->string('lat')->nullable();
+            $table->string('long')->nullable();
             $table->string('code');
             $table->string('profile_pics')->nullable();
             $table->string('email')->unique();

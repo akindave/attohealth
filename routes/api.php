@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmployerController;
+use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\MisController as ApiMiscController;
 
 /*
@@ -27,12 +28,26 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
+    Route::prefix('employee')->group(function () {
+        Route::controller(EmployeeController::class)->group(function () {
+
+            //plese ensure the date follow the following format Y-m-d e.g 2023-03-15
+           Route::get('get/jobs/by/offer/type/{offer_type_id}/{date}','listHireByOfferType');
+           Route::get('get/job/detail/by/{listing_id}','getJobDetail');
+           Route::post('claim/offer','claimOffer');
+
+
+        });
+    });
+
 });
 Route::controller(ApiMiscController::class)->group(function () {
     Route::get('get/all/country', 'getAllCountry');
     Route::get('get/state/by/country/{id}', 'getStateByCountry');
     Route::get('get/city/by/state/{id}', 'getCityByState');
     Route::get('get/job/categories', 'getAllJobCategory');
+    Route::get('get/specialty/lists', 'getAllSpecialtyList');
+    Route::get('get/offer/types', 'getAllOfferType');
     Route::get('get/user/by/designation/{designation_id}','getUserByDesignation');
 });
 

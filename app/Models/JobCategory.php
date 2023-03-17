@@ -10,6 +10,10 @@ class JobCategory extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'name',
+    ];
+
 
       /**
      * Get all of the comments for the User

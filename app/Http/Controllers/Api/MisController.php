@@ -11,6 +11,8 @@ use App\Models\Country;
 use App\Models\JobCategory;
 use App\Models\State;
 use App\Models\User;
+use App\Models\SpecialtyList;
+use App\Models\OfferType;
 use App\Models\City;
 
 class MisController  extends BaseController
@@ -35,11 +37,11 @@ class MisController  extends BaseController
     }
 
     public function getAllJobCategory(){
-        $Jobcategories = JobCategory::with('countDesig')->get();
+        $Jobcategories = JobCategory::withCount('countDesig')->get();
         if(!$Jobcategories){
             return $this->sendError('Error fetching the Job categories', []);
         }
-        return $Jobcategories;
+        return $this->sendResponse($Jobcategories, 'Job Categories Fetched successfully.');
     }
 
     public function getUserByDesignation($designation){
@@ -48,6 +50,24 @@ class MisController  extends BaseController
             return $this->sendError('Error fetching User by designation', []);
         }
         return $this->sendResponse($findUSerWithDesignation, 'Users Fetched successfully.');
+    }
+
+    public function getAllOfferType(){
+        $offerTypes = OfferType::all();
+        if(!$offerTypes){
+            return $this->sendError('Error fetching offer types', []);
+        }
+        return $this->sendResponse($offerTypes, 'Offer types Fetched successfully.');
+
+    }
+
+    public function getAllSpecialtyList(){
+        $specialtyLists = SpecialtyList::all();
+        if(!$specialtyLists){
+            return $this->sendError('Error fetching Specialty lists', []);
+        }
+        return $this->sendResponse($specialtyLists, 'Specialty lists Fetched successfully.');
+
     }
 
 }
