@@ -45,7 +45,9 @@ class MisController  extends BaseController
     }
 
     public function getUserByDesignation($designation){
-        $findUSerWithDesignation = User::where('designation',$designation)->get();
+        $findUSerWithDesignation = User::where('designation',$designation)
+        ->whereUserCategoryId(1)
+        ->get();
         if(!$findUSerWithDesignation){
             return $this->sendError('Error fetching User by designation', []);
         }

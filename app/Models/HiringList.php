@@ -31,6 +31,10 @@ class HiringList extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function companyinfo(){
+        return $this->belongsTo(User::class,'user_id');
+    }
+
     public function state(){
         return $this->belongsTo(State::class,'state')->select(['id','name']);
     }

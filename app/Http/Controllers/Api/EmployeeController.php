@@ -15,7 +15,7 @@ class EmployeeController extends BaseController
 {
     //
 
-    public function listHireByOfferType($offer_type,$date){
+    public function listHireByOfferType($offer_type){
         //get the hiring list base on the user selected location
         $activeUser = Auth::user();
         if(!$activeUser->state && !$activeUser->country){
@@ -32,7 +32,6 @@ class EmployeeController extends BaseController
         ->with('state')
         ->with('country')
         ->with('city')
-        ->whereDate('created_at',$date)
         ->get();
 
         if(!$getAllJobMatchingUserStateCountry){
@@ -48,6 +47,7 @@ class EmployeeController extends BaseController
 
         if(!$getjob){
             //return an error
+            return $this->sendError('Error fetching Job', []);
         }
 
         $getJobDetails = $getjob->with(['user' => function ($query){
@@ -60,40 +60,15 @@ class EmployeeController extends BaseController
         ->get();
 
 
-        foreach ( $getJobDetails as  $getJobDetail){
+        // foreach ( $getJobDetails as  $getJobDetail){
 
-            $markers = $this->calculateDistanceBetweenTwoAddresses( $getJobDetail->user->lat, $getJobDetail->user->long,Auth::user()->lat,Auth::user()->long);
+        //     $markers = $this->calculateDistanceBetweenTwoAddresses( $getJobDetail->user->lat, $getJobDetail->user->long,Auth::user()->lat,Auth::user()->long);
 
-            $getJobDetail['distance'] = $markers;
-        }
+        //     $getJobDetail['distance'] = $markers;
+        // }
 
         return $this->sendResponse($getJobDetails, 'Job detail Fetched successfully.');
 
-    }
-
-    //this is gotten from the use of Haversine formula.
-    public function calculateDistanceBetweenTwoAddresses($lat1, $lng1, $lat2, $lng2){
-        $lat1 = deg2rad($lat1);
-        $lng1 = deg2rad($lng1);
-
-        $lat2 = deg2rad($lat2);
-        $lng2 = deg2rad($lng2);
-
-        $delta_lat = $lat2 - $lat1;
-        $delta_lng = $lng2 - $lng1;
-
-        $hav_lat = (sin($delta_lat / 2))**2;
-        $hav_lng = (sin($delta_lng / 2))**2;
-
-        $distance = 2 * asin(sqrt($hav_lat + cos($lat1) * cos($lat2) * $hav_lng));
-
-        // 3959 for miles
-        //6371 for km
-
-        $distance = 3959*$distance;
-        // If you want calculate the distance in miles instead of kilometers, replace 6371 with 3959.
-
-        return $distance;
     }
 
     public function claimOffer(Request $request){
@@ -124,6 +99,95 @@ class EmployeeController extends BaseController
 
         return $this->sendResponse([] , 'Application completed successfully.');
 
+    }
+
+    public function myoffer(){
+        $getmyoffers = ApplicantList::whereApplicantId(Auth::id())
+        ->whereStatus('offered')
+        ->with('hiringdetail')
+        ->get();
+
+        if(!$getmyoffers){
+            return $this->sendError('Error getting your offer list', []);
+        }
+        return $this->sendResponse($getmyoffers, 'You offer Fetched successfully.');
+
+
+    }
+
+    public function acceptOffer(Request $request){
+
+        $validator = Validator::make($request->all(), [
+            'job_id' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+        $job_id = $request->job_id;
+
+        //first check if the person has been sent offer truly
+        $userwasoffered = ApplicantList::whereJobId($job_id)
+        ->whereApplicantId(Auth::id())
+        ->whereStatus('offered')
+        ->first();
+
+        if(!$userwasoffered){
+            //proceed
+            return $this->sendError('User does not have access to this job', []);
+        }
+
+        $userwasoffered->status="hired";
+        $userwasoffered->save();
+
+        //fetch the job details and perform some queries
+
+        $getJob = HiringList::whereId($job_id)->first();
+
+        $getJob->active_hires += 1;
+
+        $getJob->save();
+
+        return $this->sendResponse($getJob, 'Offer Accepted Successfully!');
+
+    }
+
+    public function rejectOffer(Request $request){
+        $validator = Validator::make($request->all(), [
+            'job_id' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+        $job_id = $request->job_id;
+
+        //first check if the person has been sent offer truly
+        $userwasoffered = ApplicantList::whereJobId($job_id)
+        ->whereApplicantId(Auth::id())
+        ->whereStatus('offered')
+        ->first();
+
+        if(!$userwasoffered){
+            //proceed
+            return $this->sendError('User does not have access to this job', []);
+        }
+
+        $userwasoffered->status="rejected";
+        $userwasoffered->save();
+        return $this->sendResponse([], 'Offer Rejected Successfully!');
+    }
+
+    public function myJobList(){
+        $getmyjobs = ApplicantList::whereApplicantId(Auth::id())
+        ->whereStatus('hired')
+        ->with('hiringdetail')
+        ->get();
+
+        if(!$getmyjobs){
+            return $this->sendError('Error getting your job list', []);
+        }
+        return $this->sendResponse($getmyjobs, 'Your Jobs Fetched successfully.');
     }
 
 }

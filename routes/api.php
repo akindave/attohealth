@@ -23,6 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('employer')->group(function () {
         Route::controller(EmployerController::class)->group(function () {
            Route::post('create/hiring/listing','create_hire_listing');
+           Route::post('post/job','post_hiring_job');
+           Route::post('send/offer','send_offer');
 
 
         });
@@ -32,9 +34,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::controller(EmployeeController::class)->group(function () {
 
             //plese ensure the date follow the following format Y-m-d e.g 2023-03-15
-           Route::get('get/jobs/by/offer/type/{offer_type_id}/{date}','listHireByOfferType');
+           Route::get('get/jobs/by/offer/type/{offer_type_id}','listHireByOfferType');
            Route::get('get/job/detail/by/{listing_id}','getJobDetail');
+           Route::get('get/myoffer/list','myoffer');
+           Route::get('get/myjobs/list','myJobList');
            Route::post('claim/offer','claimOffer');
+           Route::post('accept/offer','acceptOffer');
+           Route::post('reject/offer','rejectOffer');
 
 
         });

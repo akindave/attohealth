@@ -13,4 +13,13 @@ class ApplicantList extends Model
         'job_id',
         'status'
     ];
+
+    public function user(){
+        return $this->belongsTo(User::class,'applicant_id');
+    }
+
+    public function hiringdetail(){
+        return $this->belongsTo(HiringList::class,'job_id')->with('companyinfo');
+    }
+
 }
