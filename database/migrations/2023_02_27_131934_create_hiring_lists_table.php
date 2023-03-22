@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('to');
             $table->string('offer_amount');
             $table->string('day_type');
+            $table->string('job_category_id');
             $table->string('accommodation');
             $table->string('number_hires');
             $table->string('active_hires')->nullable();

@@ -15,7 +15,7 @@ class EmployeeController extends BaseController
 {
     //
 
-    public function listHireByOfferType($offer_type){
+    public function listHireByOfferType($offer_type,$job_category_id,$per_page){
         //get the hiring list base on the user selected location
         $activeUser = Auth::user();
         if(!$activeUser->state && !$activeUser->country){
@@ -28,11 +28,12 @@ class EmployeeController extends BaseController
         $getAllJobMatchingUserStateCountry = HiringList::whereState($getUserState)
         ->whereCountry($getUserCountry)
         ->whereOfferType($offer_type)
+        ->whereJobCategoryId($job_category_id)
         ->with('user')
         ->with('state')
         ->with('country')
         ->with('city')
-        ->get();
+        ->paginate($per_page);
 
         if(!$getAllJobMatchingUserStateCountry){
             //return error
@@ -101,11 +102,11 @@ class EmployeeController extends BaseController
 
     }
 
-    public function myoffer(){
+    public function myoffer($per_page){
         $getmyoffers = ApplicantList::whereApplicantId(Auth::id())
         ->whereStatus('offered')
         ->with('hiringdetail')
-        ->get();
+        ->paginate($per_page);
 
         if(!$getmyoffers){
             return $this->sendError('Error getting your offer list', []);
@@ -178,11 +179,11 @@ class EmployeeController extends BaseController
         return $this->sendResponse([], 'Offer Rejected Successfully!');
     }
 
-    public function myJobList(){
+    public function myJobList($per_page){
         $getmyjobs = ApplicantList::whereApplicantId(Auth::id())
         ->whereStatus('hired')
         ->with('hiringdetail')
-        ->get();
+        ->paginate($per_page);
 
         if(!$getmyjobs){
             return $this->sendError('Error getting your job list', []);

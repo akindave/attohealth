@@ -21,6 +21,7 @@ class HiringList extends Model
         'accommodation',
         'user_id',
         'number_hires',
+        'job_category_id',
         'remark',
         'active_hires',
         'status',
