@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('offer_amount');
             $table->string('day_type');
             $table->string('job_category_id');
+            $table->string('working_hour_start')->nullable();
+            $table->string('working_hour_end')->nullable();
             $table->string('accommodation');
             $table->string('number_hires');
             $table->string('active_hires')->nullable();

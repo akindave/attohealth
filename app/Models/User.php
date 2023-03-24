@@ -45,7 +45,11 @@ class User extends Authenticatable
             'practicing_license',
             'org_logo',
             'name_of_org',
-            'specialty'
+            'specialty',
+            'has_pin',
+            'job_seeking_status',
+            'bio',
+            'account_balance'
 
 
 
@@ -78,5 +82,10 @@ class User extends Authenticatable
     public function referer_code(): HasOne
     {
         return $this->hasOne(RefererCode::class);
+    }
+
+    public function country(): HasOne
+    {
+        return $this->hasOne(Country::class,'country');
     }
 }

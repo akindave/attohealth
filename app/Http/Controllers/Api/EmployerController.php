@@ -25,6 +25,8 @@ class EmployerController extends BaseController
             'to_date' => 'required',
             'offer_amount' => 'required',
             'job_category_id' => 'required',
+            'working_hour_start' => 'required',
+            'working_hour_end' => 'required',
             'offer_amount_day_type' => 'required',
             'accommodation' => 'required',
             'number_of_hire' => 'required',
@@ -50,6 +52,8 @@ class EmployerController extends BaseController
             'accommodation' => $request->accommodation,
             'day_type' => $request->offer_amount_day_type,
             'number_hires' => $request->number_of_hire,
+            'working_hour_start' => $request->working_hour_start,
+            'working_hour_end' => $request->working_hour_end,
             'remark' => $request->remark,
             'status' => 'private'
         ]);
@@ -107,11 +111,12 @@ class EmployerController extends BaseController
         ->whereJobId($job_id)
         ->first();
         if($checkIfApplicantHasBeenOffered){
-            // if($checkIfApplicantHasBeenOffered->status == "applied"){
-            //     $checkIfApplicantHasBeenOffered->status = "offered";
-            //     $checkIfApplicantHasBeenOffered->save();
-            // }else{
+            if($checkIfApplicantHasBeenOffered->status == "applied"){
+                $checkIfApplicantHasBeenOffered->status = "offered";
+                $checkIfApplicantHasBeenOffered->save();
+            }else{
                 return $this->sendError('This Job offer has already been sent to this user!', []);
+            }
 
         }
 
@@ -144,6 +149,57 @@ class EmployerController extends BaseController
         return $this->sendError('You have reached your hiring Limit', []);
 
 
+
+
+    }
+
+    public function list_applicant($job_id,$per_page){
+        //check if job id is correct and belong to user
+        $fetchJobById  = HiringList::whereUserId(Auth::id())
+        ->whereId($job_id)->get();
+
+        if(!$fetchJobById) {
+            return $this->sendError('User Does Not Have Access to this Job', []);
+        }
+        $applicantList = ApplicantList::whereJobId($job_id)
+        ->whereStatus('applied')
+        ->with('applicant_information')
+        ->paginate($per_page);
+
+        if (!$applicantList) {
+            return $this->sendError('Error fetching Applicant List', []);
+        }
+        return $this->sendResponse($applicantList, 'Applicant List fetched successfully.');
+    }
+
+    public function hired_list($job_id,$per_page){
+        //check if job id is correct and belong to user
+        $fetchJobById  = HiringList::whereUserId(Auth::id())
+        ->whereId($job_id)->get();
+
+        if(!$fetchJobById) {
+            return $this->sendError('User Does Not Have Access to this Job', []);
+        }
+        $applicantList = ApplicantList::whereJobId($job_id)
+        ->whereStatus('hired')
+        ->with('jobdetail')
+        ->with('applicant_information')
+        ->paginate($per_page);
+
+        if (!$applicantList) {
+            return $this->sendError('Error fetching Applicant List', []);
+        }
+        return $this->sendResponse($applicantList, 'Hired Applicant List fetched successfully.');
+    }
+
+    public function get_total_number_of_offers_sent(){
+
+        $fetchJobById  = HiringList::whereUserId(Auth::id())->get();
+        $gettheid = $fetchJobById->pluck('id');
+        $countOfferList = ApplicantList::whereIn('id',$gettheid)
+        ->whereStatus('offered')
+        ->count();
+        return $this->sendResponse($countOfferList, 'Total Number of Offer fetched successfully.');
 
 
     }

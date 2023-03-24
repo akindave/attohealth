@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\HiringList;
 use App\Models\User;
 use App\Models\ApplicantList;
+use App\Models\AttendanceList;
+use App\Models\Country;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use DB;
@@ -50,7 +53,6 @@ class EmployeeController extends BaseController
             //return an error
             return $this->sendError('Error fetching Job', []);
         }
-
         $getJobDetails = $getjob->with(['user' => function ($query){
 
         }])
@@ -58,7 +60,7 @@ class EmployeeController extends BaseController
         ->with('country')
         ->with('city')
         ->with('offer_type')
-        ->get();
+        ->first();
 
 
         // foreach ( $getJobDetails as  $getJobDetail){
@@ -191,4 +193,133 @@ class EmployeeController extends BaseController
         return $this->sendResponse($getmyjobs, 'Your Jobs Fetched successfully.');
     }
 
+    public function clock_in(Request $request){
+        $validator = Validator::make($request->all(), [
+            'job_id' => 'required',
+            'date' => 'required'
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+         //first check if the person has been employed truly
+         $getjob = HiringList::whereId($request->job_id)->first();
+
+         if(!$getjob){
+             //proceed
+             return $this->sendError('Cant fetch job', []);
+         }
+         //check if the person is still hired
+         $userIsHired = ApplicantList::whereApplicantId(Auth::id())
+         ->whereJobId($getjob->id)
+         ->whereStatus('hired')->exists();
+         if(!$userIsHired){
+            return $this->sendError('Sorry you are currently not hired for this job', []);
+         }
+
+         $job_expected_starting_date = $getjob->from;
+         $job_expected_ending_date = $getjob->to;
+
+         $date1 = Carbon::createFromFormat('d-m-Y', $request->date);
+         $datefrom = Carbon::createFromFormat('d-m-Y', $job_expected_starting_date );
+         $dateto = Carbon::createFromFormat('d-m-Y', $job_expected_ending_date );
+
+         if(($date1->gte($datefrom)) && ($date1->lte($dateto))){
+
+            //check if users has clocked in already
+            $userCountryId = Auth::user()->country;
+            $getCountry = Country::whereId($userCountryId)->first();
+            $userTimeZone  = json_decode($getCountry->timezones);
+
+            if(!$userCountryId || !$getCountry || empty($userTimeZone[0]->zoneName)){
+                return $this->sendError('Error getting the user country or time zone', []);
+            }
+            $hasClockedInForDate = AttendanceList::whereJobId($request->job_id)
+            ->whereUserId(Auth::id())
+            ->where('date',$request->date)->exists();
+            if($hasClockedInForDate){
+                return $this->sendError('You already Clocked In for this date', []);
+            }
+
+            $storeAttendance = AttendanceList::create([
+                    'date' => $request->date,
+                    'user_id' => Auth::id(),
+                    'job_id' => $request->job_id,
+                    'clock_in_time' => Carbon::now()->tz($userTimeZone[0]->zoneName),
+                    'status' => 'active'
+            ]);
+
+            if(!$storeAttendance){
+                return $this->sendError('Error clocking in at the moment! Try again please.', []);
+            }
+            return $this->sendResponse($storeAttendance, 'Job Clocked in and marked as active');
+         }
+
+         return $this->sendError('The Job you are trying to clocking into may have been expired or closed', []);
+
+    }
+    public function clock_out(Request $request){
+        $validator = Validator::make($request->all(), [
+            'clock_id' => 'required',
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error.', $validator->errors());
+        }
+         //first check if the person has been employed truly
+         $getAtendance = AttendanceList::whereId($request->clock_id)->first();
+
+         $getjob = HiringList::whereId($getAtendance->job_id)->first();
+
+
+         if(!$getAtendance){
+             //proceed
+             return $this->sendError('Invalid Clock Id', []);
+         }
+         //check if the person is still hired
+         $userIsHired = ApplicantList::whereApplicantId(Auth::id())
+         ->whereJobId($getjob->id)
+         ->whereStatus('hired')->exists();
+         if(!$userIsHired){
+            return $this->sendError('Sorry you are currently not hired for this job', []);
+         }
+
+         $job_expected_starting_date = $getjob->from;
+         $job_expected_ending_date = $getjob->to;
+
+         $date1 = Carbon::createFromFormat('d-m-Y', $getAtendance->date);
+         $datefrom = Carbon::createFromFormat('d-m-Y', $job_expected_starting_date );
+         $dateto = Carbon::createFromFormat('d-m-Y', $job_expected_ending_date );
+
+         if(($date1->gte($datefrom)) && ($date1->lte($dateto))){
+
+            //check if users has clocked in already
+            $userCountryId = Auth::user()->country;
+            $getCountry = Country::whereId($userCountryId)->first();
+            $userTimeZone  = json_decode($getCountry->timezones);
+
+            if(!$userCountryId || !$getCountry || empty($userTimeZone[0]->zoneName)){
+                return $this->sendError('Error getting the user country or time zone', []);
+            }
+
+
+            $storeAttendance = $getAtendance->update([
+                    'clock_out_time' => Carbon::now()->tz($userTimeZone[0]->zoneName),
+                    'status' => 'completed'
+            ]);
+
+            if(!$storeAttendance){
+                return $this->sendError('Error clocking out at the moment! Try again please.', []);
+            }
+            return $this->sendResponse([], 'Job Clocked out and marked as completed');
+         }
+
+         return $this->sendError('The Job you are trying to clocking out of may have been expired or closed', []);
+
+    }
+
+
+
+    public function checkIfDateHasNotpast($date1,$date2){
+    }
 }

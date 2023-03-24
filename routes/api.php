@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmployerController;
 use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\MisController as ApiMiscController;
 
 /*
@@ -21,11 +23,31 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
 
+        // settings
+        Route::controller(SettingController::class)->group(function () {
+            Route::post('change/password', 'changePassword');
+            Route::post('create/pin', 'createPin');
+            Route::post('update/pin', 'updatePin');
+            Route::post('update/info', 'updateProfileInfo');
+
+        });
+
+        Route::controller(TransactionController::class)->group(function () {
+            Route::get('verify/pin/{pin}','verifyTransactionPin');
+            Route::post('withdraw/funds', 'withdrawFunds');
+        });
+
         Route::prefix('employer')->group(function () {
             Route::controller(EmployerController::class)->group(function () {
                Route::post('create/hiring/listing','create_hire_listing');
                Route::post('post/job','post_hiring_job');
                Route::post('send/offer','send_offer');
+
+               //new added endpoint
+               Route::get('get/applicant/list/{job_id}/{per_page}','list_applicant');
+               Route::get('get/hired/list/{job_id}/{per_page}','hired_list');
+               Route::get('get/total/offer/sent','get_total_number_of_offers_sent');
+
 
 
             });
@@ -42,6 +64,12 @@ Route::prefix('v1')->group(function () {
                Route::post('claim/offer','claimOffer');
                Route::post('accept/offer','acceptOffer');
                Route::post('reject/offer','rejectOffer');
+
+               //new endpoint
+               Route::post('clock/in/job','clock_in');
+               Route::post('clock/out/job','clock_out');
+
+
 
 
             });

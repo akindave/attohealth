@@ -18,8 +18,21 @@ class ApplicantList extends Model
         return $this->belongsTo(User::class,'applicant_id');
     }
 
+    public function applicant_information(){
+        return $this->belongsTo(User::class,'applicant_id');
+    }
+
     public function hiringdetail(){
-        return $this->belongsTo(HiringList::class,'job_id')->with('companyinfo');
+        return $this->belongsTo(HiringList::class,'job_id')
+        ->with('companyinfo')
+        ->with('offer_type')
+        ->with('country')
+        ->with('state')
+        ->with('city');
+    }
+
+    public function jobdetail(){
+        return $this->belongsTo(HiringList::class,'job_id')->with('offer_type');
     }
 
 }

@@ -32,6 +32,8 @@ return new class extends Migration
             $table->longText('academic_certificate')->nullable();
             $table->longText('resume')->nullable();
             $table->longText('practicing_license')->nullable();
+            $table->longText('bio')->nullable();
+            $table->longText('account_balance')->default(0);
             $table->boolean('isVerified')->default(false);
             $table->string('country')->nullable();
             $table->string('state')->nullable();
@@ -40,9 +42,11 @@ return new class extends Migration
             $table->string('long')->nullable();
             $table->string('code');
             $table->string('profile_pics')->nullable();
+            $table->string('job_seeking_status')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->integer('has_pin')->nullable();
             $table->string('transaction_pin')->nullable();
             $table->boolean('Auth2fa')->default(false);
             $table->softDeletes();

@@ -22,6 +22,8 @@ class HiringList extends Model
         'user_id',
         'number_hires',
         'job_category_id',
+        'working_hour_start',
+        'working_hour_end',
         'remark',
         'active_hires',
         'status',
